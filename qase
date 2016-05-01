@@ -1,0 +1,39 @@
+#!/usr/bin/env python
+
+import sys, os
+from optparse import OptionParser
+
+nproc = int(sys.argv[1])
+filename = sys.argv[2].split('.')[0]
+
+execfile(sys.argv[2])
+
+print 'Submitting job %s with %i cores for VASP.' % (filename, nproc)
+
+with open('%s.qs' % filename, 'w') as script:
+    script.write('#!/bin/bash\n')
+    script.write('#$ -cwd\n')
+    script.write('#$ -j y\n')
+    script.write('#$ -S /bin/bash\n')
+    script.write('#$ -pe openmpi-smp %i\n' % nproc)
+    script.write('#$ -q *@@3rd_gen\n\n')
+    script.write('source /etc/profile.d/valet.sh\n\n')
+
+   # script.write('vpkg_rollback all\n')
+    script.write('vpkg_require "vasp/5.3.2+vtst+d3-pgi10"\n\n')
+
+    script.write('echo "GridEngine parameters:"\n')	
+    script.write('echo "  nhosts         = $NHOSTS"\n')
+    script.write('echo "  nproc          = $NSLOTS"\n')
+    script.write('echo "  mpiexec        =" `which mpiexec`\n')
+    script.write('echo "  pe_hostfile    = $PE_HOSTFILE"\n')
+    script.write('echo "  vasp           =" `which vasp`\n')
+    script.write('echo\n')
+    script.write('cat $PE_HOSTFILE\n')
+    script.write('echo\n')
+    script.write('echo "-- begin OPENMPI run --"\n')
+    script.write('time mpiexec --n $NSLOTS --host localhost --mca btl sm,self --display-map vasp\n')
+    script.write('echo "-- end OPENMPI run --"\n')
+
+
+    #script.write('vpkg_rollback all\n')
