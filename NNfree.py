@@ -3,8 +3,8 @@ from ase.visualize import view
 from ase.io import read
 from ase.io.vasp import write_vasp
 
-#Read in previous POSCAR
-slab = read('POSCAR',format='vasp')
+#Read in previous CONTCAR
+slab = read('CONTCAR',format='vasp')
 slab.center()
 
 #freeze all atoms but adsorbate and NN
