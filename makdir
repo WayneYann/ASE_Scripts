@@ -1,0 +1,49 @@
+#!/bin/bash
+for dir in */*/; do
+    mkdir -- "$dir/freq";
+    sub=$( IFS=/; set -- $dir; echo $2 );
+    touch "$dir/freq/${sub}freq.py";
+    echo "from ase import Atoms
+from ase.lattice import surface
+from ase.constraints import FixAtoms
+from ase.calculators.vasp import Vasp
+from ase.visualize import view
+from ase.io import write
+from ase.io import read
+from ase.constraints import FixedLine
+#sigma=0.01 for gases and edif=13-8
+
+calc = Vasp(gga='RP',xc='PBE', kpts=(1,1,1), lwave=False, lcharg=False,lvtot=False, nwrite=1
+            , encut=400, algo='Fast', ismear=1, sigma=0.1, voskown=1, istart=0, nelm=400, nelmdl=-10, ediff=1e-8, ispin=2
+            ,nsw=100, isif=2, ibrion=5, nfree=2, potim=0.025
+            ,ivdw=11
+            ,lreal='Auto')
+
+slab = read('../CONTCAR')
+
+
+slab.center(vacuum=20.0,axis=2)
+
+#freeze all atoms but adsorbate and whichever others are in atomIndex
+#atomIndex = [0]
+#for atom in slab:
+#        if atom.symbol == 'O' or atom.symbol == 'H':
+#                atomIndex = [atom.index]
+
+#constraint = FixAtoms(indices=[atom.index for atom in slab if atom.index not in atomIndex])
+constraint2 = FixedLine(0,[0, 0, 1])
+constraint3 = FixedLine(1,[0, 0, 1])
+slab.set_constraint([constraint2,constraint3])
+
+view(slab) # View the slab, frozen atoms will be marked with a X
+
+
+#slab.set_calculator(calc)
+
+calc.initialize(slab)
+calc.write_incar(slab)
+calc.write_potcar()
+calc.write_kpoints()
+write('POSCAR', calc.atoms_sorted)  # this will write a sorted POSCAR" > "$dir/freq/${sub}freq.py"
+done
+

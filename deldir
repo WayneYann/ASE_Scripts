@@ -1,0 +1,8 @@
+#!/bin/bash
+for dir in */*/; do
+   # chmod 744 "$dir/freq";
+   rm -R "$dir/freq";
+   echo $dir
+   
+done
+
